@@ -1,3 +1,5 @@
+'use client'
+
 import { global_app_state_context as GlobalAppStateContext } from '@/context/global-app-state-context'
 import { ReactNode } from 'react'
 
