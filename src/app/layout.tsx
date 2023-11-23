@@ -4,6 +4,9 @@ import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/provider/theme-provider'
 import GlobalAppStateProvider from '@/provider/global-app-state-provider'
+import { cn } from '@/lib/utils'
+import App from '../App'
+import Navbar from '@/components/custom/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,14 +23,19 @@ export default function RootLayout ({
   return (
     <ClerkProvider>
       <html lang='en'>
-        <body className={inter.className}>
+        <body className={cn('p-3', inter.className)}>
           <ThemeProvider
             attribute='class'
-            defaultTheme='dark'
+            defaultTheme='light'
             enableSystem
             disableTransitionOnChange
           >
-            <GlobalAppStateProvider>{children}</GlobalAppStateProvider>
+            <GlobalAppStateProvider>
+              <App>
+                <Navbar />
+                {children}
+              </App>
+            </GlobalAppStateProvider>
           </ThemeProvider>
         </body>
       </html>
