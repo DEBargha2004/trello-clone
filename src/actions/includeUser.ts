@@ -2,7 +2,7 @@
 
 import { currentUser } from '@clerk/nextjs'
 import { User } from '@clerk/nextjs/server'
-import { connection } from '../lib/db'
+import { db } from '../lib/db'
 import { UserData } from '@/types/user'
 
 /**
@@ -49,15 +49,14 @@ export default async function includeUser () {
  */
 async function checkUser (id: string) {
   try {
-    const connectionInstance = await connection()
-
     // console.log(connectionInstance.config)
 
-    const [result, fields] = await connectionInstance.execute(
-      `SELECT * FROM users WHERE user_id = ?`,
-      [id]
-    )
-    return result
+    const result = await db.execute(`SELECT * FROM users WHERE user_id = ?`, [
+      id
+    ])
+    // console.log(result)
+
+    return result.rows
   } catch (error) {
     console.log(error)
     return []
@@ -86,13 +85,13 @@ async function addUser ({
   email: string
 }) {
   try {
-    const connectionInstance = await connection()
-    const [result, fields] = await connectionInstance.execute(
+    const { rows } = await db.execute(
       `INSERT INTO users (user_id,firstname,lastname,email) VALUES (?,?,?,?)`,
       [id, firstname, lastname, email]
     )
     // await connectionInstance.end()
-    return result
+
+    return rows
   } catch (error) {
     console.log(error)
     return []

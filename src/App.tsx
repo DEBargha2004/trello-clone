@@ -11,7 +11,7 @@ import { getWorkspaces } from './actions/getWorkspaces'
 
 function App ({ children }: { children: ReactNode }) {
   const { user } = useUser()
-  const { setUserInfo, setWorkspacesInfo } = useContext(
+  const { setUserInfo, setWorkspaces } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
 
@@ -24,11 +24,9 @@ function App ({ children }: { children: ReactNode }) {
       }
     })
 
-    setTimeout(() => {
-      console.log('user', user.id)
-
-      getWorkspaces(user.id)
-    }, 5000)
+    getWorkspaces(user.id).then(workspaces => {
+      setWorkspaces(workspaces)
+    })
   }, [user])
 
   return <>{children}</>
