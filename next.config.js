@@ -4,6 +4,15 @@ const nextConfig = {
     remotePatterns: [
       {
         hostname: 'img.clerk.com'
+      },
+      {
+        hostname: 'imgs.search.brave.com'
+      },
+      {
+        hostname: 'cdn.pixabay.com'
+      },
+      {
+        hostname: 'pixabay.com'
       }
     ]
   }

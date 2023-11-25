@@ -4,7 +4,7 @@ export type Board = {
   description?: string
   timestamp?: string
   starred: number
-  background_type: string
+  background_type: 'color' | 'image'
   background_info: string
   workspace_id?: string
 }

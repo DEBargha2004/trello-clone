@@ -4,7 +4,7 @@ import { global_app_state_context as GlobalAppStateContext } from '@/context/glo
 import { ActiveWorkspaceFeature } from '@/types/global-app-state'
 import { UserData } from '@/types/user'
 import { WorkSpaceType } from '@/types/workspace'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 
 const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
   const [userInfo, setUserInfo] = useState<UserData>({
@@ -14,9 +14,19 @@ const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
     email: ''
   })
   const [workspaces, setWorkspaces] = useState<WorkSpaceType[]>([])
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkSpaceType>()
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<
+    string | null | undefined
+  >()
   const [activeWorkspaceFeature, setActiveWorkspaceFeature] =
     useState<ActiveWorkspaceFeature>(null)
+
+  const activeWorkspace = useMemo(() => {
+    if (!activeWorkspaceId) return
+
+    return workspaces.find(
+      workspace => workspace.workspace_id === activeWorkspaceId
+    )
+  }, [activeWorkspaceId, workspaces])
   return (
     <GlobalAppStateContext.Provider
       value={{
@@ -25,7 +35,7 @@ const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
         workspaces,
         setWorkspaces,
         activeWorkspace,
-        setActiveWorkspace,
+        setActiveWorkspaceId,
         activeWorkspaceFeature,
         setActiveWorkspaceFeature
       }}

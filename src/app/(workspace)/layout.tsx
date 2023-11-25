@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { ReactNode, useContext, useEffect } from 'react'
 
 export default function Layout ({ children }: { children: ReactNode }) {
-  const { setActiveWorkspaceFeature, setActiveWorkspace, workspaces } =
+  const { setActiveWorkspaceFeature, setActiveWorkspaceId, workspaces } =
     useContext(global_app_state_context) as GlobalAppStateType
   const pathName = usePathname()
 
@@ -19,7 +19,7 @@ export default function Layout ({ children }: { children: ReactNode }) {
         workspace => workspace.workspace_id === workspaceId
       )
       if (workspace) {
-        setActiveWorkspace(workspace)
+        setActiveWorkspaceId(workspace?.workspace_id)
       }
     }
     if (
@@ -39,7 +39,7 @@ export default function Layout ({ children }: { children: ReactNode }) {
     console.log(pathName.split(`/`))
   }, [pathName, workspaces])
   return (
-    <div className='flex justify-between items-start h-full'>
+    <div className='flex justify-between items-start h-full px-10 py-5'>
       <div className='w-1/4 h-full pl-5'>
         <Sidebar />
       </div>

@@ -15,8 +15,9 @@ export type GlobalAppStateType = {
   setUserInfo: Dispatch<SetStateAction<UserData>>
   workspaces: WorkSpaceType[]
   setWorkspaces: Dispatch<SetStateAction<WorkSpaceType[]>>
-  activeWorkspace: WorkSpaceType
-  setActiveWorkspace: Dispatch<SetStateAction<WorkSpaceType>>
+  activeWorkspace: WorkSpaceType | undefined
   activeWorkspaceFeature: ActiveWorkspaceFeature
   setActiveWorkspaceFeature: Dispatch<SetStateAction<ActiveWorkspaceFeature>>
+  activeWorkspaceId: string | null | undefined
+  setActiveWorkspaceId: Dispatch<SetStateAction<string | null | undefined>>
 }
