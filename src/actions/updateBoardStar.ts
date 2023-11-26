@@ -11,10 +11,20 @@ import { currentUser } from '@clerk/nextjs'
  * @return {number} The updated star value.
  */
 export default async function updateBoardStar (star: number, board_id: string) {
-  if (!board_id) return Math.abs(star - 1)
-  await db.execute(`update table board set starred = ? where board_id = ?`, [
-    star,
-    board_id
-  ])
+  console.log(star, board_id)
+
+  const user = await currentUser()
+  if (!board_id || !user?.id) {
+    return Math.abs(star - 1)
+  }
+
+  await db.execute(
+    `
+  update board 
+  set starred = ?
+  where board_id = ?
+    `,
+    [star, board_id]
+  )
   return star
 }

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { WorkSpaceType } from '@/types/workspace'
 import { currentUser } from '@clerk/nextjs'
 import { User } from '@clerk/nextjs/server'
+import updateActivity from './updateActivity'
 
 export async function createWorkspace (title: string, description?: string) {
   const userInfo = await currentUser()
@@ -29,13 +30,21 @@ export async function createWorkspace (title: string, description?: string) {
 
   const activityId = `activity_${crypto.randomUUID()}`
 
-  await db.execute(
-    `insert into activity_log
-            (workspace_id, user_id, activity_id, activity_type,activity_info, timestamp)
-        values
-            (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-    [workspace_id, userInfo.id, activityId, 'created', 'Workspace created']
-  )
+  // await db.execute(
+  //   `insert into activity_log
+  //           (workspace_id, user_id, activity_id, activity_type,activity_info, timestamp)
+  //       values
+  //           (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+  //   [workspace_id, userInfo.id, activityId, 'created', 'Workspace created']
+  // )
+
+  await updateActivity({
+    activity_id: activityId,
+    activity_info: 'Workspace created',
+    activity_type: 'created',
+    user_id: userInfo.id,
+    workspace_id: workspace_id
+  })
 
   console.log(rows)
 

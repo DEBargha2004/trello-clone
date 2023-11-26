@@ -10,33 +10,47 @@ import { global_app_state_context } from '@/context/global-app-state-context'
 import { GlobalAppStateType } from '@/types/global-app-state'
 import { ImageApiData } from '@/types/image-api'
 import { useUser } from '@clerk/nextjs'
-import { LockKeyhole, MoreHorizontal, UnlockKeyhole, User2 } from 'lucide-react'
+import {
+  Loader2,
+  LockKeyhole,
+  MoreHorizontal,
+  UnlockKeyhole,
+  User2
+} from 'lucide-react'
 import Image from 'next/image'
 import React, { useContext, useEffect, useMemo, useState } from 'react'
-
+import { FieldValues, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { vibrantGradients } from '@/constants/vibrantGradients'
 import Kanbar from '../../../../../../public/trello-kanban-only.svg'
 import { cn } from '@/lib/utils'
+import { boardCreationSchema } from '@/schema/board-creation-schema'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import BoardBackgroundContainer from '@/components/custom/board-background-container'
+import { BoardDatabase } from '@/types/board'
+import { Textarea } from '@/components/ui/textarea'
+
+import { cloneDeep } from 'lodash'
 
 function Page () {
   const { user } = useUser()
-  const { userInfo, activeWorkspace, workspaces } = useContext(
+  const { userInfo, activeWorkspace, setWorkspaces } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(boardCreationSchema)
+  })
 
   const [boardImages, setBoardImages] = useState<
     ImageApiData | null | undefined
   >()
 
-  const vibrantGradients: string[] = [
-    'bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500',
-    'bg-gradient-to-tr from-purple-400 via-pink-500 to-red-500',
-    'bg-gradient-to-tr from-blue-400 via-purple-500 to-indigo-500',
-    'bg-gradient-to-tr from-green-400 via-teal-500 to-blue-500',
-    'bg-gradient-to-tr from-yellow-400 via-green-500 to-blue-500',
-    'bg-gradient-to-tr from-pink-400 via-purple-500 to-indigo-500',
-    'bg-gradient-to-tr from-red-400 via-orange-500 to-yellow-500',
-    'bg-gradient-to-tr from-orange-400 via-red-500 to-pink-500'
-  ]
   const [imageIndex, setImageIndex] = useState<number>(0)
 
   const [background, setBackground] = useState<{
@@ -47,10 +61,63 @@ function Page () {
     background_info: ''
   })
 
+  const [boardDialogOpen, setBoardDialogOpen] = useState(false)
+
   const starredBoards = useMemo(() => {
     if (!activeWorkspace?.workspace_id) return
+    console.log('change detected in starred boards')
+    console.log(activeWorkspace.boards?.filter(board => board.starred))
+
     return activeWorkspace.boards?.filter(board => board.starred)
   }, [activeWorkspace])
+
+  async function handleBoardCreation (e: FieldValues) {
+    console.log(e)
+
+    let response = await fetch(`/api/createBoard`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: e.title,
+        description: e.description,
+        background_type: background.background_type,
+        background_info: background.background_info,
+        workspace_id: activeWorkspace?.workspace_id
+      } as BoardDatabase)
+    })
+    response = await response.json()
+
+    setWorkspaces(prev => {
+      prev = cloneDeep(prev)
+
+      const currentWorkspace = prev.find(
+        workspace => workspace.workspace_id === activeWorkspace?.workspace_id
+      )
+
+      const board = {
+        workspace_id: response.workspace_id,
+        board_id: response.board_id,
+        title: response.title,
+        description: response.description,
+        background_type: response.background_type,
+        background_info: response.background_info,
+        starred: response.starred,
+        timestamp: response.timestamp
+      } as BoardDatabase
+
+      if (Array.isArray(currentWorkspace?.boards)) {
+        currentWorkspace?.boards.unshift(board)
+      } else {
+        currentWorkspace.boards = [board]
+      }
+
+      return prev
+    })
+
+    setBoardDialogOpen(false)
+  }
 
   useEffect(() => {
     getImages().then(res => {
@@ -107,7 +174,7 @@ function Page () {
             </div>
             <div className='grid grid-cols-4 gap-2 my-3'>
               {starredBoards?.map((starredBoard, index) => (
-                <Board board={starredBoard} key={index} />
+                <Board board={starredBoard} key={starredBoard?.board_id} />
               ))}
             </div>
           </WorkspaceBoardsListWrapper>
@@ -119,28 +186,30 @@ function Page () {
             <h1 className='font-semibold'>Your boards</h1>
           </div>
           <div className='grid grid-cols-4 gap-2 my-3'>
-            {activeWorkspace?.boards?.map((starredBoard, index) => (
-              <Board board={starredBoard} key={index} />
+            {activeWorkspace?.boards?.map((board, index) => (
+              <Board board={board} key={board?.board_id} />
             ))}
             <Dialog
-              onOpenChange={open =>
+              onOpenChange={open => {
                 setImageIndex(Math.floor(Math.random() * 16))
-              }
+                setBoardDialogOpen(open)
+              }}
+              open={boardDialogOpen}
             >
               <DialogTrigger asChild>
                 <div className='w-full aspect-[16/9]  transition-all rounded-md bg-slate-200 hover:bg-slate-300 overflow-hidden flex justify-center items-center cursor-pointer'>
                   Create new board
                 </div>
               </DialogTrigger>
-              <DialogContent>
-                <div className=' flex flex-col items-center gap-1 p-1'>
+              <DialogContent className='h-full overflow-y-scroll'>
+                <div className='flex flex-col items-center gap-1 p-1'>
                   <p className='font-medium'>Create board</p>
                   <div className='w-full relative aspect-[16/9] overflow-hidden rounded-lg'>
                     <Image
                       src={Kanbar}
                       alt='kanban'
                       width={400}
-                      className='absolute top-0 left-1/2 z-10 w-4/5 -translate-x-1/2'
+                      className='absolute top-2 left-1/2 z-10 w-4/5 -translate-x-1/2'
                     />
                     {background.background_type === 'color' ? (
                       <div
@@ -193,10 +262,141 @@ function Page () {
                           }}
                         ></div>
                       ))}
-                      <div className='w-full aspect-[4/3] cursor-pointer rounded bg-slate-300 flex justify-center items-center'>
-                        <MoreHorizontal className='h-5' />
-                      </div>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <div className='w-full aspect-[4/3] cursor-pointer rounded bg-slate-300 flex justify-center items-center'>
+                            <MoreHorizontal className='h-5' />
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className=''>
+                          <div className='p-2 min-w-[400px]'>
+                            <h1 className='text-center font-semibold'>
+                              Board background
+                            </h1>
+                            <BoardBackgroundContainer
+                              heading='Photos'
+                              collection={() => (
+                                <div className='h-[300px] overflow-y-scroll'>
+                                  <div className='grid grid-cols-3 gap-2 min-w-[350px] p-2 h-fit overflow-y-scroll'>
+                                    {boardImages?.hits.map(
+                                      (boardImage, index) => (
+                                        <BoardImage
+                                          boardImage={boardImage}
+                                          key={boardImage.id}
+                                          className=''
+                                          handleSelectBackground={id => {
+                                            const url = boardImages?.hits?.find(
+                                              hit => hit.id === id
+                                            )?.largeImageURL
+                                            setBackground({
+                                              background_type: 'image',
+                                              background_info: url
+                                            })
+                                          }}
+                                        />
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            >
+                              <div className='grid grid-cols-3 gap-2'>
+                                {boardImages?.hits
+                                  .slice(0, 6)
+                                  .map((boardImage, index) => (
+                                    <BoardImage
+                                      boardImage={boardImage}
+                                      key={boardImage.id}
+                                      handleSelectBackground={id => {
+                                        const url = boardImages?.hits?.find(
+                                          hit => hit.id === id
+                                        )?.largeImageURL
+                                        setBackground({
+                                          background_type: 'image',
+                                          background_info: url
+                                        })
+                                      }}
+                                    />
+                                  ))}
+                              </div>
+                            </BoardBackgroundContainer>
+                            <BoardBackgroundContainer
+                              heading='Colors'
+                              collection={() => (
+                                <div className='h-[300px] overflow-y-scroll'>
+                                  <div className='grid grid-cols-3 gap-2 min-w-[350px] p-2 h-fit overflow-y-scroll'>
+                                    {vibrantGradients
+                                      .slice(0, 20)
+                                      .map((gradient, index) => (
+                                        <div
+                                          key={index}
+                                          className={`w-full aspect-[16/9] cursor-pointer rounded ${gradient}`}
+                                          onClick={() => {
+                                            setBackground({
+                                              background_type: 'color',
+                                              background_info: gradient
+                                            })
+                                          }}
+                                        ></div>
+                                      ))}
+                                  </div>
+                                </div>
+                              )}
+                            >
+                              <div className='grid grid-cols-3 gap-2'>
+                                {vibrantGradients
+                                  .slice(0, 6)
+                                  .map((gradient, index) => (
+                                    <div
+                                      key={index}
+                                      className={`w-full aspect-[16/9] cursor-pointer rounded ${gradient}`}
+                                      onClick={() => {
+                                        setBackground({
+                                          background_type: 'color',
+                                          background_info: gradient
+                                        })
+                                      }}
+                                    ></div>
+                                  ))}
+                              </div>
+                            </BoardBackgroundContainer>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
+                    <form
+                      onSubmit={handleSubmit(e => handleBoardCreation(e))}
+                      className='mt-4'
+                    >
+                      <h1 className='text-sm font-medium my-1'>
+                        Board title (*)
+                      </h1>
+                      <Input
+                        type='text'
+                        placeholder='Enter board name'
+                        {...register('title')}
+                      />
+                      <p className='text-sm font-medium my-1 text-red-500'>
+                        {errors?.title?.message?.toString() || ''}
+                      </p>
+                      <h1 className='text-sm font-medium my-1'>
+                        Description <i>(optional)</i>
+                      </h1>
+                      <Textarea
+                        placeholder='Enter board name'
+                        {...register('description')}
+                      />
+                      <p className='text-sm font-medium my-1 text-red-500'>
+                        {errors?.title?.message?.toString() || ''}
+                      </p>
+                      <Button className='mt-4' disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <Loader2 className='animate-spin mr-2' />
+                        ) : null}
+                        Create
+                      </Button>
+                    </form>
                   </div>
                 </div>
               </DialogContent>

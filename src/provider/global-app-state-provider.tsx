@@ -23,6 +23,8 @@ const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
   const activeWorkspace = useMemo(() => {
     if (!activeWorkspaceId) return
 
+    console.log('change deteceted')
+
     return workspaces.find(
       workspace => workspace.workspace_id === activeWorkspaceId
     )

@@ -5,15 +5,20 @@ import { useState } from 'react'
 
 function BoardImage ({
   boardImage,
-  handleSelectBackground
+  handleSelectBackground,
+  className
 }: {
   boardImage: BoardImage
+  className?: string
   handleSelectBackground: (id: number) => void
 }) {
   const [showAuthor, setShowAuthor] = useState(false)
   return (
     <div
-      className='relative w-full aspect-[16/9] rounded overflow-hidden cursor-pointer'
+      className={cn(
+        'relative w-full aspect-[16/9] rounded overflow-hidden cursor-pointer',
+        className
+      )}
       onMouseEnter={() => setShowAuthor(true)}
       onMouseLeave={() => setShowAuthor(false)}
       onClick={() => handleSelectBackground(boardImage.id)}
@@ -28,7 +33,7 @@ function BoardImage ({
       />
       <p
         className={cn(
-          'absolute bottom-0 truncate w-[150px] text-slate-300 ml-1 text-sm',
+          'absolute bottom-0 truncate w-[150px] text-slate-300 ml-1 text-[12px]',
           showAuthor ? 'block' : 'hidden'
         )}
       >

@@ -8,3 +8,15 @@ export type Board = {
   background_info: string
   workspace_id?: string
 }
+
+export interface BoardDatabase {
+  board_id?: string
+  workspace_id: string
+  title: string
+  description: string
+  timestamp_created?: string
+  starred?: number
+  private?: number
+  background_type: string
+  background_info: string
+}

@@ -1,0 +1,22 @@
+export const vibrantGradients: string[] = [
+  'bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500',
+  'bg-gradient-to-tr from-purple-400 via-pink-500 to-red-500',
+  'bg-gradient-to-tr from-blue-400 via-purple-500 to-indigo-500',
+  'bg-gradient-to-tr from-green-400 via-teal-500 to-blue-500',
+  'bg-gradient-to-tr from-yellow-400 via-green-500 to-blue-500',
+  'bg-gradient-to-tr from-pink-400 via-purple-500 to-indigo-500',
+  'bg-gradient-to-tr from-red-400 via-orange-500 to-yellow-500',
+  'bg-gradient-to-tr from-orange-400 via-red-500 to-pink-500',
+  'bg-gradient-to-br from-pink-500 via-red-500 to-yellow-400',
+  'bg-gradient-to-tl from-blue-500 via-indigo-500 to-purple-400',
+  'bg-gradient-to-tl from-green-500 via-blue-500 to-teal-400',
+  'bg-gradient-to-tl from-red-500 via-yellow-500 to-orange-400',
+  'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-400',
+  'bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-400',
+  'bg-gradient-to-tr from-blue-500 via-green-500 to-yellow-400',
+  'bg-gradient-to-br from-orange-500 via-red-500 to-pink-400',
+  'bg-gradient-to-bl from-pink-400 via-purple-500 to-indigo-500',
+  'bg-gradient-to-bl from-blue-400 via-teal-500 to-green-500',
+  'bg-gradient-to-bl from-green-400 via-yellow-500 to-orange-500',
+  'bg-gradient-to-bl from-yellow-400 via-red-500 to-pink-500'
+]
