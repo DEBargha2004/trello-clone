@@ -7,6 +7,7 @@ import GlobalAppStateProvider from '@/provider/global-app-state-provider'
 import { cn } from '@/lib/utils'
 import App from '../App'
 import Navbar from '@/components/custom/navbar'
+import WorkspaceControl from '@/components/custom/workspace-control'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,6 +34,7 @@ export default function RootLayout ({
             <GlobalAppStateProvider>
               <App>
                 <Navbar />
+                <WorkspaceControl />
                 {children}
               </App>
             </GlobalAppStateProvider>

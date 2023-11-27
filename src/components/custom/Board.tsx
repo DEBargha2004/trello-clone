@@ -11,7 +11,7 @@ import { GlobalAppStateType } from '@/types/global-app-state'
 import { cloneDeep } from 'lodash'
 
 function Board ({ board }: { board: Board }) {
-  const { setWorkspaces } = useContext(
+  const { setWorkspaces, activeWorkspace: globalActiveWorkspace } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
 
@@ -35,14 +35,20 @@ function Board ({ board }: { board: Board }) {
       setWorkspaces(prev => {
         prev = cloneDeep(prev)
         const activeWorkspace = prev.find(
-          workspace => workspace.workspace_id === board?.workspace_id
+          workspace =>
+            workspace.workspace_id === globalActiveWorkspace?.workspace_id
         )
         const activeWorkspaceBoard = activeWorkspace?.boards?.find(
           prev_board => prev_board.board_id === board?.board_id
         )
+
         if (activeWorkspaceBoard) {
           activeWorkspaceBoard.starred = newStar
+        } else {
+          setOptimisticBoard(board)
         }
+
+        console.log('prev is ', prev)
 
         return prev
       })
@@ -88,6 +94,7 @@ function Board ({ board }: { board: Board }) {
           alt='star'
           height={15}
           width={15}
+          id='star'
           className={cn(
             'absolute bottom-2 transition-all hover:scale-125',
             optimisticBoard?.starred || showStar ? 'right-2' : '-right-4'

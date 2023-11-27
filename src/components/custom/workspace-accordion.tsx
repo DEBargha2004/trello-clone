@@ -7,7 +7,7 @@ import {
 } from '../ui/accordion'
 import { ReactNode, useContext } from 'react'
 import { Activity, KanbanSquare, Users } from 'lucide-react'
-import { workspaceFeatures } from '@/constants/workspacefeature'
+import { workspaceFeatures } from '@/constants/workspace-feature'
 import { cn } from '@/lib/utils'
 import { global_app_state_context } from '@/context/global-app-state-context'
 import { GlobalAppStateType } from '@/types/global-app-state'

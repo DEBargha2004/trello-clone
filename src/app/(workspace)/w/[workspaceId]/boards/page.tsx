@@ -21,7 +21,7 @@ import Image from 'next/image'
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { FieldValues, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { vibrantGradients } from '@/constants/vibrantGradients'
+import { vibrantGradients } from '@/constants/vibrant-gradient'
 import Kanbar from '../../../../../../public/trello-kanban-only.svg'
 import { cn } from '@/lib/utils'
 import { boardCreationSchema } from '@/schema/board-creation-schema'
@@ -32,6 +32,8 @@ import { BoardDatabase } from '@/types/board'
 import { Textarea } from '@/components/ui/textarea'
 
 import { cloneDeep } from 'lodash'
+import Link from 'next/link'
+import CustomLink from '@/components/custom/custom-link'
 
 function Page () {
   const { user } = useUser()
@@ -65,14 +67,13 @@ function Page () {
 
   const starredBoards = useMemo(() => {
     if (!activeWorkspace?.workspace_id) return
-    console.log('change detected in starred boards')
     console.log(activeWorkspace.boards?.filter(board => board.starred))
 
     return activeWorkspace.boards?.filter(board => board.starred)
   }, [activeWorkspace])
 
   async function handleBoardCreation (e: FieldValues) {
-    console.log(e)
+    // console.log(e)
 
     let response = await fetch(`/api/createBoard`, {
       method: 'POST',
@@ -174,7 +175,15 @@ function Page () {
             </div>
             <div className='grid grid-cols-4 gap-2 my-3'>
               {starredBoards?.map((starredBoard, index) => (
-                <Board board={starredBoard} key={starredBoard?.board_id} />
+                <CustomLink
+                  key={starredBoard?.board_id}
+                  href={`/b/${starredBoard?.board_id}`}
+                >
+                  <Board
+                    board={starredBoard}
+                    key={`${starredBoard?.board_id}-${starredBoard.starred}`}
+                  />
+                </CustomLink>
               ))}
             </div>
           </WorkspaceBoardsListWrapper>
@@ -187,7 +196,12 @@ function Page () {
           </div>
           <div className='grid grid-cols-4 gap-2 my-3'>
             {activeWorkspace?.boards?.map((board, index) => (
-              <Board board={board} key={board?.board_id} />
+              <CustomLink href={`/b/${board?.board_id}`} key={board?.board_id}>
+                <Board
+                  board={board}
+                  key={`${board?.board_id}-${board.starred}`}
+                />
+              </CustomLink>
             ))}
             <Dialog
               onOpenChange={open => {
