@@ -9,11 +9,11 @@ export const boardSidebarFeature: {
   {
     id: 'boards',
     title: 'Boards',
-    logo: <Trello className='h-4' />
+    logo: <Trello className='h-5' />
   },
   {
     id: 'members',
     title: 'Members',
-    logo: <Users2 className='h-4' />
+    logo: <Users2 className='h-5' />
   }
 ]

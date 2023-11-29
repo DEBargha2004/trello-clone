@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react'
 import { UserData } from './user'
 import { WorkSpaceType } from './workspace'
+import { ImageApiData } from './image-api'
 
 export type ActiveWorkspaceFeature =
   | 'boards'
@@ -20,4 +21,6 @@ export type GlobalAppStateType = {
   setActiveWorkspaceFeature: Dispatch<SetStateAction<ActiveWorkspaceFeature>>
   activeWorkspaceId: string | null | undefined
   setActiveWorkspaceId: Dispatch<SetStateAction<string | null | undefined>>
+  boardImages: ImageApiData | null | undefined
+  setBoardImages: Dispatch<SetStateAction<ImageApiData | null | undefined>>
 }

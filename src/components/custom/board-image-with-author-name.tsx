@@ -3,7 +3,7 @@ import { BoardImage } from '@/types/image-api'
 import Image from 'next/image'
 import { useState } from 'react'
 
-function BoardImage ({
+function BoardImageWithAuthorName ({
   boardImage,
   handleSelectBackground,
   className
@@ -43,4 +43,4 @@ function BoardImage ({
   )
 }
 
-export default BoardImage
+export default BoardImageWithAuthorName

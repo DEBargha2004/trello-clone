@@ -9,6 +9,7 @@ import updateBoardStar from '@/actions/updateBoardStar'
 import { global_app_state_context } from '@/context/global-app-state-context'
 import { GlobalAppStateType } from '@/types/global-app-state'
 import { cloneDeep } from 'lodash'
+import BoardImageOnly from './board-image-only'
 
 function Board ({ board }: { board: Board }) {
   const { setWorkspaces, activeWorkspace: globalActiveWorkspace } = useContext(
@@ -62,19 +63,7 @@ function Board ({ board }: { board: Board }) {
       onMouseEnter={() => setShowStar(true)}
       onMouseLeave={() => setShowStar(false)}
     >
-      {optimisticBoard?.background_type === 'image' ? (
-        <Image
-          alt='board'
-          src={optimisticBoard?.background_info}
-          fill
-          className='absolute top-0 left-0 w-full h-full object-cover'
-        />
-      ) : (
-        <div
-          className='w-full h-full'
-          style={{ backgroundColor: optimisticBoard?.background_info }}
-        />
-      )}
+      <BoardImageOnly board={optimisticBoard} />
       <div
         className={cn(
           'w-full h-full absolute top-0 left-0 z-10 transition-all hover:bg-[#0000003b] cursor-pointer p-1'

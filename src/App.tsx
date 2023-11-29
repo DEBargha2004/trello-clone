@@ -8,10 +8,11 @@ import { GlobalAppStateType } from './types/global-app-state'
 import { global_app_state_context } from './context/global-app-state-context'
 import { UserData } from './types/user'
 import { getWorkspaces } from './actions/getWorkspaces'
+import getImages from './actions/getImages'
 
 function App ({ children }: { children: ReactNode }) {
   const { user } = useUser()
-  const { setUserInfo, setWorkspaces } = useContext(
+  const { setUserInfo, setWorkspaces, setBoardImages } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
 
@@ -28,6 +29,13 @@ function App ({ children }: { children: ReactNode }) {
       setWorkspaces(workspaces)
     })
   }, [user])
+
+  useEffect(() => {
+    getImages().then(res => {
+      //@ts-ignore
+      setBoardImages(res)
+    })
+  }, [])
 
   return <>{children}</>
 }

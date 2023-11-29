@@ -58,7 +58,8 @@ export async function getBoardInfo (board_id: string) {
         JOIN
             users u ON w.creator_user_id = u.user_id
         WHERE
-            b.board_id = ?;
+            b.board_id = ?
+        ;
     `,
     [board_id, board_id]
   )
