@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { boardCreationSchema } from '@/schema/board-creation-schema'
 import { BoardDatabase } from '@/types/board'
 import { cloneDeep } from 'lodash'
+import ErrorMessage from './error-message'
 
 function CreateNewBoard ({ children }: { children: React.ReactNode }) {
   const { boardImages, setWorkspaces, activeWorkspace } = useContext(
@@ -278,9 +279,9 @@ function CreateNewBoard ({ children }: { children: React.ReactNode }) {
                 placeholder='Enter board name'
                 {...register('title')}
               />
-              <p className='text-sm font-medium my-1 text-red-500'>
+              <ErrorMessage>
                 {errors?.title?.message?.toString() || ''}
-              </p>
+              </ErrorMessage>
               <h1 className='text-sm font-medium my-1'>
                 Description <i>(optional)</i>
               </h1>
@@ -288,9 +289,9 @@ function CreateNewBoard ({ children }: { children: React.ReactNode }) {
                 placeholder='Enter board name'
                 {...register('description')}
               />
-              <p className='text-sm font-medium my-1 text-red-500'>
+              <ErrorMessage>
                 {errors?.title?.message?.toString() || ''}
-              </p>
+              </ErrorMessage>
               <Button className='mt-4' disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className='animate-spin mr-2' />

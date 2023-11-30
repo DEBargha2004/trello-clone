@@ -59,7 +59,7 @@ export function Sidebar () {
   //   console.log(workspaces[0].title)
 
   return (
-    <div className='w-full h-full flex flex-col justify-start items-end p-3'>
+    <div className='w-full h-full flex flex-col justify-start items-end p-3 overflow-y-scroll'>
       <div className='w-full flex justify-between py-1'>
         <p>Create New</p>
         <Dialog

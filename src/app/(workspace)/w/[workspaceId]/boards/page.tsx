@@ -85,14 +85,23 @@ function Page () {
             <h1 className='font-semibold'>Your boards</h1>
           </div>
           <div className='grid grid-cols-4 gap-2 my-3'>
-            {activeWorkspace?.boards?.map((board, index) => (
-              <CustomLink href={`/b/${board?.board_id}`} key={board?.board_id}>
-                <Board
-                  board={board}
-                  key={`${board?.board_id}-${board.starred}`}
-                />
-              </CustomLink>
-            ))}
+            {activeWorkspace?.boards
+              ?.sort((a, b) => {
+                const t1 = new Date(a?.timestamp).getTime()
+                const t2 = new Date(b?.timestamp).getTime()
+                return t2 - t1
+              })
+              .map((board, index) => (
+                <CustomLink
+                  href={`/b/${board?.board_id}`}
+                  key={board?.board_id}
+                >
+                  <Board
+                    board={board}
+                    key={`${board?.board_id}-${board.starred}`}
+                  />
+                </CustomLink>
+              ))}
             <CreateNewBoard>
               <div className='w-full aspect-[16/9]  transition-all rounded-md bg-slate-200 hover:bg-slate-300 overflow-hidden flex justify-center items-center cursor-pointer'>
                 Create new board

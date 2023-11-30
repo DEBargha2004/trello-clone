@@ -81,6 +81,26 @@ body {
   width: 100%;
 }
 
-::-webkit-scrollbar {
+body::-webkit-scrollbar {
   width: 0;
+}
+
+.scrollbar-x::-webkit-scrollbar {
+  height: 10px;
+  background-color: transparent;
+}
+
+.scrollbar-y::-webkit-scrollbar {
+  width: 10px;
+  background-color: transparent;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.712);
+  border-radius: 10px;
+}
+
+.blurry-background {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }

@@ -24,7 +24,7 @@ export default function RootLayout ({
   return (
     <ClerkProvider>
       <html lang='en'>
-        <body className={cn('p-3', inter.className)}>
+        <body className={cn('', inter.className)}>
           <ThemeProvider
             attribute='class'
             defaultTheme='light'
@@ -33,9 +33,13 @@ export default function RootLayout ({
           >
             <GlobalAppStateProvider>
               <App>
-                <Navbar />
-                <WorkspaceControl />
-                {children}
+                <div className='h-full w-full'>
+                  <div className='h-[10%]'>
+                    <Navbar />
+                    <WorkspaceControl />
+                  </div>
+                  <div className='h-[90%]'>{children}</div>
+                </div>
               </App>
             </GlobalAppStateProvider>
           </ThemeProvider>

@@ -15,14 +15,13 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 function BoardSidebar ({ active_board_id }: { active_board_id: string }) {
-  const pathName = usePathname()
   const { user } = useUser()
   const { activeWorkspace } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
 
   return (
-    <div className='h-full w-full'>
+    <div className='h-full w-full overflow-y-scroll text-primary-foreground bg-[#00000059] srcollbar scrollbar-y'>
       <div className='p-2 flex items-start gap-2'>
         <Image
           src={user?.imageUrl || ''}
@@ -38,7 +37,7 @@ function BoardSidebar ({ active_board_id }: { active_board_id: string }) {
         {boardSidebarFeature?.map(feature => (
           <div
             key={feature.id}
-            className='flex items-center gap-2 p-1 rounded hover:bg-cyan-50 cursor-pointer transition-all'
+            className='flex items-center gap-2 p-1 rounded hover:bg-accent-foreground cursor-pointer transition-all'
           >
             {feature.logo}
             <h1 className='font-semibold'>{feature.title}</h1>
@@ -50,7 +49,7 @@ function BoardSidebar ({ active_board_id }: { active_board_id: string }) {
         <div className='flex justify-between items-center'>
           <h1 className='font-bold'>Your boards</h1>
           <CreateNewBoard>
-            <Plus className='p-[2px] rounded-sm transition-all hover:bg-cyan-50 cursor-pointer' />
+            <Plus className='p-[2px] rounded-sm transition-all hover:bg-accent-foreground cursor-pointer' />
           </CreateNewBoard>
         </div>
         <div className='px-2'>
@@ -66,8 +65,10 @@ function BoardSidebar ({ active_board_id }: { active_board_id: string }) {
               <Link key={board?.board_id} href={`/b/${board?.board_id}`}>
                 <div
                   className={cn(
-                    'flex items-center gap-2 my-2 p-1 rounded hover:bg-cyan-50 transition-all cursor-pointer',
-                    active_board_id === board?.board_id ? 'bg-cyan-50' : ''
+                    'flex items-center gap-2 my-2 p-1 rounded hover:bg-accent-foreground transition-all cursor-pointer',
+                    active_board_id === board?.board_id
+                      ? 'bg-accent-foreground'
+                      : ''
                   )}
                 >
                   <BoardImageOnly

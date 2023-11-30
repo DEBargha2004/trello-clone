@@ -40,7 +40,7 @@ export async function createWorkspace (title: string, description?: string) {
 
   await updateActivity({
     activity_id: activityId,
-    activity_info: 'Workspace created',
+    activity_info: `Workspace ${title} created`,
     activity_type: 'created',
     user_id: userInfo.id,
     workspace_id: workspace_id

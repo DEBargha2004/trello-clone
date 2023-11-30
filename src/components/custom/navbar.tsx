@@ -33,8 +33,8 @@ function Navbar () {
   const router = useRouter()
 
   return isSignedIn ? (
-    <>
-      <div className='flex justify-between items-center'>
+    <div className='h-full flex flex-col justify-between'>
+      <div className='flex justify-between items-center p-2'>
         <div className='flex justify-between items-center gap-2'>
           <AppLogo />
         </div>
@@ -70,7 +70,7 @@ function Navbar () {
         className='h-[1px] bg-slate-300 my-1'
         orientation='horizontal'
       />
-    </>
+    </div>
   ) : null
 }
 
