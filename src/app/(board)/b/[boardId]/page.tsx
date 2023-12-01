@@ -27,6 +27,7 @@ import { cloneDeep } from 'lodash'
 import { Loader2, Plus } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
 
 function Board ({ params }: { params: { boardId: string } }) {
   const boardId = params.boardId
@@ -115,46 +116,85 @@ function Board ({ params }: { params: { boardId: string } }) {
             {optimisticBoardInfo?.title}
           </h1>
         </div>
-        <div className='flex justify-start items-start gap-5 px-3'>
-          {optimisticBoardInfo?.lists?.map(list => (
-            <ListWrapper key={list?.list_id} className='shrink-0'>
-              <ListProvider>
-                <List title={list.title} list={list} />
-              </ListProvider>
-            </ListWrapper>
-          ))}
-
-          <ListWrapper className='shrink-0'>
-            <Dialog
-              open={showListFormDialog}
-              onOpenChange={setShowListFormDialog}
-            >
-              <DialogTrigger className='w-full'>
-                <div className='flex p-3 gap-3 items-center bg-[#ffffff54] transition-all hover:bg-[#ffffff2f] rounded-xl cursor-pointer'>
-                  <Plus className='h-4 text-white' />
-                  <p className='text-white font-semibold'>Add a List</p>
+        <DragDropContext onDragEnd={(...e) => console.log(e)}>
+          <div className='flex justify-start items-start gap-5 px-3'>
+            <Droppable droppableId='board' direction='horizontal' type='column'>
+              {boardDroppableProvided => (
+                <div
+                  {...boardDroppableProvided.droppableProps}
+                  ref={boardDroppableProvided.innerRef}
+                  className='flex'
+                >
+                  {optimisticBoardInfo?.lists?.map((list, l_index) => (
+                    <Draggable
+                      key={list.list_id}
+                      draggableId={list.list_id}
+                      index={l_index}
+                    >
+                      {boardDraggableProvided => (
+                        <div
+                          {...boardDraggableProvided.draggableProps}
+                          ref={boardDraggableProvided.innerRef}
+                        >
+                          <Droppable droppableId={list.list_id}>
+                            {droppableProps => (
+                              <ListWrapper
+                                key={list?.list_id}
+                                className='shrink-0 mr-4'
+                                {...droppableProps.droppableProps}
+                                ref={droppableProps.innerRef}
+                              >
+                                <ListProvider>
+                                  <List
+                                    title={list.title}
+                                    list={list}
+                                    droppableProps={droppableProps}
+                                    draggableProps={boardDraggableProvided}
+                                  />
+                                </ListProvider>
+                              </ListWrapper>
+                            )}
+                          </Droppable>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {boardDroppableProvided.placeholder}
                 </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>Create New List</DialogHeader>
-                <form onSubmit={handleSubmit(handleCreateList)}>
-                  <h1 className='font-semibold my-1'>Title</h1>
-                  <Input {...register('title')} />
-                  <ErrorMessage>
-                    {errors?.title?.message?.toString()}
-                  </ErrorMessage>
+              )}
+            </Droppable>
+            <ListWrapper className='shrink-0'>
+              <Dialog
+                open={showListFormDialog}
+                onOpenChange={setShowListFormDialog}
+              >
+                <DialogTrigger className='w-full'>
+                  <div className='flex p-3 gap-3 items-center bg-[#ffffff54] transition-all hover:bg-[#ffffff2f] rounded-xl cursor-pointer'>
+                    <Plus className='h-4 text-white' />
+                    <p className='text-white font-semibold'>Add a List</p>
+                  </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>Create New List</DialogHeader>
+                  <form onSubmit={handleSubmit(handleCreateList)}>
+                    <h1 className='font-semibold my-1'>Title</h1>
+                    <Input {...register('title')} />
+                    <ErrorMessage>
+                      {errors?.title?.message?.toString()}
+                    </ErrorMessage>
 
-                  <Button className='mt-5' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <Loader2 className='animate-spin mr-2' />
-                    ) : null}
-                    Create
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </ListWrapper>
-        </div>
+                    <Button className='mt-5' disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <Loader2 className='animate-spin mr-2' />
+                      ) : null}
+                      Create
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </ListWrapper>
+          </div>
+        </DragDropContext>
       </div>
       <div>
         <div className='h-full absolute top-0 right-0 w-screen -z-10'>
