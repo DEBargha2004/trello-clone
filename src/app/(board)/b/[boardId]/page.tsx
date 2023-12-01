@@ -10,13 +10,13 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTrigger
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { board_context } from '@/context/board-context'
 import { global_app_state_context } from '@/context/global-app-state-context'
+import ListProvider from '@/provider/list-provider'
 import { listCreationSchema } from '@/schema/list-creation-schema'
 import { BoardFullInfo, List as ListType } from '@/types/board'
 import { BoardState } from '@/types/board-state'
@@ -34,6 +34,7 @@ function Board ({ params }: { params: { boardId: string } }) {
   const { boardInfo, setBoardInfo } = useContext(board_context) as BoardState
   const [optimisticBoardInfo, setOptimisticBoardInfo] =
     useState<BoardFullInfo>(boardInfo)
+
   const { activeWorkspace } = useContext(
     global_app_state_context
   ) as GlobalAppStateType
@@ -48,8 +49,8 @@ function Board ({ params }: { params: { boardId: string } }) {
   })
 
   const handleCreateList = async e => {
-    const index_order = optimisticBoardInfo?.lists?.length
-      ? optimisticBoardInfo?.lists?.length - 1
+    const index_order = Array.isArray(optimisticBoardInfo?.lists)
+      ? optimisticBoardInfo?.lists?.length
       : 0
     const optimisticList: ListType = {
       index_order,
@@ -99,10 +100,17 @@ function Board ({ params }: { params: { boardId: string } }) {
     getBoardInfo(boardId).then(data => setBoardInfo(data))
   }, [user])
 
+  useEffect(() => {
+    setOptimisticBoardInfo(boardInfo)
+  }, [boardInfo])
+
   return (
     <div className='h-full'>
-      <div className='relative h-full overflow-x-scroll scrollbar scrollbar-x'>
-        <div className='p-5 px-7 bg-[#00000062] mb-4 sticky left-0 blurry-background'>
+      <div
+        className='relative h-full overflow-x-scroll scrollbar scrollbar-x'
+        onWheel={e => (e.currentTarget.scrollLeft += e.deltaY)}
+      >
+        <div className='p-5 px-7 bg-[#00000041] mb-4 sticky left-0 blurry-background'>
           <h1 className='text-white font-semibold'>
             {optimisticBoardInfo?.title}
           </h1>
@@ -110,24 +118,12 @@ function Board ({ params }: { params: { boardId: string } }) {
         <div className='flex justify-start items-start gap-5 px-3'>
           {optimisticBoardInfo?.lists?.map(list => (
             <ListWrapper key={list?.list_id} className='shrink-0'>
-              <List
-                title={list.title}
-                listId={list?.list_id}
-                addCard={listId => (
-                  <div className='flex justify-start mt-2 cursor-pointer'>
-                    <div className='flex w-full justify-start items-center text-primary-foreground transition-all hover:bg-accent-foreground pr-2 py-1 rounded-xl'>
-                      <Plus className='h-4' />
-                      <p>Add a card</p>
-                    </div>
-                  </div>
-                )}
-              >
-                {list?.tasks?.map(task => (
-                  <div key={task?.task_id}>{task?.title}</div>
-                ))}
-              </List>
+              <ListProvider>
+                <List title={list.title} list={list} />
+              </ListProvider>
             </ListWrapper>
           ))}
+
           <ListWrapper className='shrink-0'>
             <Dialog
               open={showListFormDialog}

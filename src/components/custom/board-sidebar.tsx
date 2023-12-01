@@ -45,7 +45,7 @@ function BoardSidebar ({ active_board_id }: { active_board_id: string }) {
         ))}
       </div>
       <Separator />
-      <div className='my-2'>
+      <div className='my-2 px-2'>
         <div className='flex justify-between items-center'>
           <h1 className='font-bold'>Your boards</h1>
           <CreateNewBoard>

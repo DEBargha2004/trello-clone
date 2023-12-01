@@ -4,7 +4,11 @@ import { board_context as BoardContext } from '@/context/board-context'
 import { BoardFullInfo } from '@/types/board'
 import { useState } from 'react'
 
-function BoardProvider ({ children }: { children: React.ReactNode }) {
+export default function BoardProvider ({
+  children
+}: {
+  children: React.ReactNode
+}) {
   const [boardInfo, setBoardInfo] = useState<BoardFullInfo>({})
   return (
     <BoardContext.Provider value={{ boardInfo, setBoardInfo }}>
@@ -12,5 +16,3 @@ function BoardProvider ({ children }: { children: React.ReactNode }) {
     </BoardContext.Provider>
   )
 }
-
-export default BoardProvider

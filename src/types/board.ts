@@ -21,7 +21,7 @@ export interface BoardDatabase {
   background_info: string
 }
 
-interface Task {
+export interface Task {
   task_id: string
   title: string
   description: string

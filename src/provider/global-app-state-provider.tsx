@@ -7,7 +7,11 @@ import { UserData } from '@/types/user'
 import { WorkSpaceType } from '@/types/workspace'
 import { ReactNode, useMemo, useState } from 'react'
 
-const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
+export default function GlobalAppStateProvider ({
+  children
+}: {
+  children: ReactNode
+}) {
   const [userInfo, setUserInfo] = useState<UserData>({
     user_id: '',
     firstname: '',
@@ -53,5 +57,3 @@ const GlobalAppStateProvider = ({ children }: { children: ReactNode }) => {
     </GlobalAppStateContext.Provider>
   )
 }
-
-export default GlobalAppStateProvider
