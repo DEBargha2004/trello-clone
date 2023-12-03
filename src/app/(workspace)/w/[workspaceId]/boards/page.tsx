@@ -21,7 +21,6 @@ function Page () {
 
   const starredBoards = useMemo(() => {
     if (!activeWorkspace?.workspace_id) return
-    console.log(activeWorkspace.boards?.filter(board => board.starred))
 
     return activeWorkspace.boards?.filter(board => board.starred)
   }, [activeWorkspace])

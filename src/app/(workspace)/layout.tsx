@@ -5,7 +5,7 @@ import { ReactNode } from 'react'
 
 export default function Layout ({ children }: { children: ReactNode }) {
   return (
-    <div className='flex justify-between items-start h-full px-5 py-5'>
+    <div className='flex justify-between items-start h-full'>
       <div className='w-1/4 h-full'>
         <Sidebar />
       </div>

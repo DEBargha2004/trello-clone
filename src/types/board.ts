@@ -25,14 +25,14 @@ export interface Task {
   task_id: string
   title: string
   description: string
-  index_order: number
+  prev_id: string | null
   timestamp_created: string // Consider using appropriate date type
 }
 
 export interface List {
   list_id: string
   title: string
-  index_order: number
+  prev_id: string | null
   tasks: Task[]
 }
 

@@ -49,8 +49,6 @@ function Board ({ board }: { board: Board }) {
           setOptimisticBoard(board)
         }
 
-        console.log('prev is ', prev)
-
         return prev
       })
     } catch (error) {

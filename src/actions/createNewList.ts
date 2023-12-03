@@ -8,23 +8,23 @@ import { List } from '@/types/board'
 export async function createNewList (
   title: string,
   board_id: string,
-  index_order: number,
-  workspace_id: string
+  prev_id: string,
+  workspace_id: string,
+  list_id: string
 ) {
   const userInfo = await currentUser()
   if (!userInfo?.id) return
 
-  const list_id = `list_${crypto.randomUUID()}`
   const activity_id = `activity_${crypto.randomUUID()}`
 
   await db.execute(
     `
     INSERT INTO list 
-        (list_id,board_id,title,index_order) 
+        (list_id,board_id,title,prev_id) 
     VALUES 
         (?,?,?,?)
     `,
-    [list_id, board_id, title, index_order]
+    [list_id, board_id, title, prev_id]
   )
 
   await updateActivity({
@@ -38,7 +38,7 @@ export async function createNewList (
   return {
     list_id,
     title,
-    index_order,
+    prev_id,
     tasks: []
   } as List
 }

@@ -31,14 +31,14 @@ export async function getBoardInfo (board_id: string) {
                         JSON_OBJECT(
                             'list_id', l.list_id,
                             'title', l.title,
-                            'index_order', l.index_order,
+                            'prev_id', l.prev_id,
                             'tasks', (
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'task_id', t.task_id,
                                         'title', t.title,
                                         'description', t.description,
-                                        'index_order', t.index_order,
+                                        'prev_id', t.prev_id,
                                         'timestamp_created', t.timestamp_created
                                     )
                                 )
@@ -66,31 +66,3 @@ export async function getBoardInfo (board_id: string) {
 
   return board.rows[0].board_data
 }
-
-// {
-//   board_id: string,
-//   title: string,
-//   description: string,
-//   timestamp: string,
-//   starred: number,
-//   background_type: string,
-//   background_info: string,
-//   workspace_id: string,
-//   private: number,
-//   lists:[
-//     {
-//       list_id: string,
-//       title: string,
-//       index_order: number,
-//       tasks:[
-//         {
-//           task_id: string,
-//           title: string,
-//           description: string,
-//           index_order: number,
-//           timestamp: string
-//         }
-//       ]
-//     }
-//   ]
-// }

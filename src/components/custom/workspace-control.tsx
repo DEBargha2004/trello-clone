@@ -24,7 +24,7 @@ function WorkspaceControl () {
       }
     } else if (pathArr[1] === 'b' && pathArr[2].indexOf('board_') === 0) {
       const activeWorkspace = getActiveWorkspaceFromBoardId(pathArr[2])
-      console.log('in boards', activeWorkspace)
+      // console.log('in boards', activeWorkspace)
 
       setActiveWorkspaceId(activeWorkspace?.workspace_id)
     }

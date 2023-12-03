@@ -45,7 +45,7 @@ export async function getWorkspaces (user_id: string) {
     [user_id]
   )
 
-  console.log('workspaces are', workspaces, Date.now())
+  // console.log('workspaces are', workspaces, Date.now())
 
   //@ts-ignore
   return workspaces.rows.map(row => row.workspace as WorkSpaceType)

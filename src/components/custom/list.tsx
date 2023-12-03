@@ -17,18 +17,17 @@ import {
   Draggable,
   DraggableProps,
   DraggableProvided,
+  Droppable,
   DroppableProvided
 } from '@hello-pangea/dnd'
 
 function List ({
   title,
   list,
-  droppableProps,
   draggableProps
 }: {
   title: string
   list: ListType
-  droppableProps: DroppableProvided
   draggableProps: DraggableProvided
 }) {
   const { setListInfo, listInfo } = useContext(list_context) as ListState
@@ -60,22 +59,35 @@ function List ({
     const { title } = getTaskValues()
 
     if (title) {
-      const index_order = Array.isArray(list?.tasks) ? list.tasks.length : 0
-
+      const prev_id = list?.tasks?.length ? list.tasks.at(-1)?.task_id : null
+      const task_id = `task_${crypto.randomUUID()}`
       const optimisticTask: Task = {
-        task_id: `task_${crypto.randomUUID()}`,
+        task_id,
         title,
         description: '',
-        index_order,
+        prev_id,
         timestamp_created: new Date().toISOString()
       }
 
-      setListInfo(prev => ({
-        ...prev,
-        tasks: Array.isArray(prev?.tasks)
-          ? [...prev?.tasks, optimisticTask]
-          : [optimisticTask]
-      }))
+      // console.log('optimistic task ', optimisticTask)
+
+      // setListInfo(prev => ({
+      //   ...prev,
+      //   tasks: Array.isArray(prev?.tasks)
+      //     ? [...prev?.tasks, optimisticTask]
+      //     : [optimisticTask]
+      // }))
+
+      setBoardInfo(prev => {
+        prev = cloneDeep(prev)
+        const currentList = prev?.lists?.find(l => l?.list_id === list?.list_id)
+        if (Array.isArray(currentList?.tasks)) {
+          currentList?.tasks?.push(optimisticTask)
+        } else {
+          currentList.tasks = [optimisticTask]
+        }
+        return prev
+      })
 
       setTaskTextarea(prev => ({
         ...prev,
@@ -88,25 +100,28 @@ function List ({
           title,
           workspace_id: activeWorkspace?.workspace_id,
           description: '',
-          index_order
+          prev_id,
+          task_id
         })
 
-        setBoardInfo(prev => {
-          prev = cloneDeep(prev)
-          const currentList = prev?.lists?.find(
-            l => l?.list_id === list?.list_id
-          )
+        // console.log('database task created ', task)
 
-          if (Array.isArray(currentList?.tasks)) {
-            currentList?.tasks?.push(task)
-          } else {
-            currentList.tasks = [task]
-          }
+        // setBoardInfo(prev => {
+        //   prev = cloneDeep(prev)
+        //   const currentList = prev?.lists?.find(
+        //     l => l?.list_id === list?.list_id
+        //   )
 
-          return prev
-        })
+        //   if (Array.isArray(currentList?.tasks)) {
+        //     currentList?.tasks?.push(task)
+        //   } else {
+        //     currentList.tasks = [task]
+        //   }
+
+        //   return prev
+        // })
       } catch (error) {
-        setListInfo(list)
+        // setListInfo(list)
       }
     }
     setTaskTextarea(prev => ({
@@ -117,46 +132,62 @@ function List ({
     taskReset()
   }
 
-  useEffect(() => {
-    setListInfo(list)
-  }, [list])
+  // useEffect(() => {
+  //   setListInfo(list)
+  // }, [list])
 
   return (
     <div className='bg-[#0000009c] rounded-xl p-3'>
       <h1
-        className='font-semibold text-primary-foreground pl-2'
+        className='font-semibold text-primary-foreground pl-2 mb-2'
         {...draggableProps.dragHandleProps}
       >
         {title}
       </h1>
-      <div className=''>
-        {listInfo?.tasks?.map((t, t_index) => (
-          <Draggable draggableId={t.task_id} index={t_index}>
-            {draggableProvided => (
-              <div
+      <Droppable droppableId={list?.list_id}>
+        {droppableProvided => (
+          <div
+            className='min-h-[10px]'
+            {...droppableProvided.droppableProps}
+            ref={droppableProvided.innerRef}
+          >
+            {list?.tasks?.map((t, t_index) => (
+              <Draggable
+                draggableId={t?.task_id}
+                index={t_index}
                 key={t?.task_id}
-                className='p-3 px-2 bg-gray-500 text-white rounded-xl mb-2'
-                {...draggableProvided.draggableProps}
-                {...draggableProvided.dragHandleProps}
-                ref={draggableProvided.innerRef}
               >
-                {t?.title}
-              </div>
-            )}
-          </Draggable>
-        ))}
-        {taskTextarea.listId === listInfo?.list_id && taskTextarea.visible ? (
-          <form onSubmit={taskHandleSubmit(handleCreateTask)} className=''>
-            <Textarea
-              autoFocus
-              {...taskRegister('title')}
-              onBlur={handleCreateTask}
-              className='bg-transparent border-none text-white'
-            />
-          </form>
-        ) : null}
-        {droppableProps.placeholder}
-      </div>
+                {(draggableProvided, draggableSnapshot) => (
+                  <div
+                    key={t?.task_id}
+                    className={`p-3 px-2 ${
+                      draggableSnapshot.isDragging
+                        ? 'bg-[#000000d8]'
+                        : 'bg-[#0000008e]'
+                    } text-white rounded-xl mb-2`}
+                    {...draggableProvided.draggableProps}
+                    {...draggableProvided.dragHandleProps}
+                    ref={draggableProvided.innerRef}
+                  >
+                    {t?.title}
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {taskTextarea.listId === list?.list_id && taskTextarea.visible ? (
+              <form onSubmit={taskHandleSubmit(handleCreateTask)} className=''>
+                <Textarea
+                  autoFocus
+                  {...taskRegister('title')}
+                  onBlur={handleCreateTask}
+                  className='bg-transparent border-none text-white'
+                />
+              </form>
+            ) : null}
+            {droppableProvided.placeholder}
+          </div>
+        )}
+      </Droppable>
       <div>
         <div className='flex justify-start mt-2 cursor-pointer'>
           <div
@@ -164,7 +195,7 @@ function List ({
             onClick={() => {
               setTaskTextarea(prev => ({
                 ...prev,
-                listId: listInfo?.list_id,
+                listId: list?.list_id,
                 visible: true
               }))
             }}

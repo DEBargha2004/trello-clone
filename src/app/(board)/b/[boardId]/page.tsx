@@ -27,7 +27,17 @@ import { cloneDeep } from 'lodash'
 import { Loader2, Plus } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
+import {
+  DragDropContext,
+  Draggable,
+  DropResult,
+  Droppable
+} from '@hello-pangea/dnd'
+import { rearrangeTasks } from '@/functions/rearrangeTasks'
+import { rearrangeColumns } from '@/functions/rearrangeColumns'
+import { updateTaskPosition } from '@/actions/updateTask'
+import updateActivity from '@/actions/updateActivity'
+import { updateListPosition } from '@/actions/updateList'
 
 function Board ({ params }: { params: { boardId: string } }) {
   const boardId = params.boardId
@@ -50,12 +60,13 @@ function Board ({ params }: { params: { boardId: string } }) {
   })
 
   const handleCreateList = async e => {
-    const index_order = Array.isArray(optimisticBoardInfo?.lists)
-      ? optimisticBoardInfo?.lists?.length
-      : 0
+    const prev_id = optimisticBoardInfo?.lists?.length
+      ? optimisticBoardInfo?.lists?.at(-1)?.list_id
+      : null
+    const list_id = `list_${crypto.randomUUID()}`
     const optimisticList: ListType = {
-      index_order,
-      list_id: `list_${crypto.randomUUID()}`,
+      prev_id,
+      list_id,
       tasks: [],
       title: e.title
     }
@@ -73,8 +84,9 @@ function Board ({ params }: { params: { boardId: string } }) {
       const list = await createNewList(
         e.title,
         boardId,
-        index_order,
-        activeWorkspace?.workspace_id
+        prev_id,
+        activeWorkspace?.workspace_id,
+        list_id
       )
 
       setBoardInfo(prev => {
@@ -95,15 +107,354 @@ function Board ({ params }: { params: { boardId: string } }) {
     setShowListFormDialog(false)
   }
 
+  const handleUpdateBoard = (e: DropResult) => {
+    if (e.destination?.droppableId === e.source?.droppableId) {
+      if (e.source?.droppableId === 'board') {
+        setOptimisticBoardInfo(prev => {
+          const activeBoard = cloneDeep(prev)
+          const activity_id = `activity_${crypto.randomUUID()}`
+          if (activeBoard) {
+            const source_index = e.source?.index
+            const next_to_source_index = e.source?.index + 1
+            const destination_index = e.destination!.index
+            const next_to_destination_index = e.destination!.index + 1
+            const prev_to_destination_index = e.destination!.index - 1
+            const next_to_source_item =
+              activeBoard?.lists?.[next_to_source_index]
+            const source_item = activeBoard?.lists?.[source_index]
+            const next_to_destination_item =
+              activeBoard?.lists?.[next_to_destination_index]
+            const prev_to_destination_item =
+              activeBoard?.lists?.[prev_to_destination_index]
+            const destination_item = activeBoard?.lists?.[destination_index]
+
+            if (source_index === destination_index) {
+              return prev
+            }
+            if (next_to_source_item) {
+              next_to_source_item.prev_id = source_item?.prev_id
+              updateListPosition(
+                { prev_id: source_item?.prev_id },
+                {
+                  list_id: next_to_source_item.list_id
+                }
+              )
+            }
+
+            if (source_index > destination_index) {
+              source_item.prev_id = prev_to_destination_item?.list_id || null
+              updateListPosition(
+                { prev_id: prev_to_destination_item?.list_id || null },
+                {
+                  list_id: source_item.list_id
+                }
+              )
+
+              destination_item.prev_id = source_item.list_id
+              updateListPosition(
+                { prev_id: source_item.list_id },
+                { list_id: destination_item.list_id }
+              )
+            } else {
+              source_item.prev_id = destination_item.list_id
+              updateListPosition(
+                {
+                  prev_id: destination_item.list_id
+                },
+                { list_id: source_item.list_id }
+              )
+              if (next_to_destination_item) {
+                next_to_destination_item.prev_id = source_item?.list_id
+                updateListPosition(
+                  { prev_id: source_item?.list_id },
+                  { list_id: next_to_destination_item.list_id }
+                )
+              }
+            }
+
+            updateActivity({
+              workspace_id: activeWorkspace!.workspace_id,
+              activity_id,
+              user_id: user!.id,
+              activity_type: 'updated',
+              activity_info: `List position changed`
+            })
+          }
+
+          activeBoard.lists = rearrangeColumns(activeBoard.lists)
+          return activeBoard
+        })
+      } else {
+        setOptimisticBoardInfo(prev => {
+          prev = cloneDeep(prev)
+
+          const activeList = prev?.lists?.find(
+            l => l.list_id === e.source?.droppableId
+          )
+          if (activeList) {
+            const source_index = e.source?.index
+            const next_to_source_index = e.source?.index + 1
+            const destination_index = e.destination?.index
+            const next_to_destination_index = e.destination?.index + 1
+            const prev_to_destination_index = e.destination?.index - 1
+            const next_to_source_item =
+              activeList?.tasks?.[next_to_source_index]
+            const source_item = activeList?.tasks?.[source_index]
+            const next_to_destination_item =
+              activeList?.tasks?.[next_to_destination_index]
+            const prev_to_destination_item =
+              activeList?.tasks?.[prev_to_destination_index]
+            const destination_item = activeList?.tasks?.[destination_index]
+            const activity_id = `activity_${crypto.randomUUID()}`
+            if (source_index === destination_index) {
+              return prev
+            }
+            if (next_to_source_item) {
+              next_to_source_item.prev_id = source_item?.prev_id
+              updateTaskPosition(
+                {
+                  prev_id: source_item.prev_id,
+                  list_id: activeList.list_id
+                },
+                next_to_source_item
+              )
+            }
+
+            if (source_index > destination_index) {
+              source_item.prev_id = prev_to_destination_item?.task_id || null
+              updateTaskPosition(
+                {
+                  prev_id: prev_to_destination_item?.task_id || null,
+                  list_id: activeList.list_id
+                },
+                source_item
+              )
+
+              destination_item.prev_id = source_item.task_id
+              updateTaskPosition(
+                {
+                  prev_id: source_item.task_id,
+                  list_id: activeList.list_id
+                },
+                destination_item
+              )
+
+              updateActivity({
+                workspace_id: activeWorkspace!.workspace_id,
+                activity_id,
+                user_id: user!.id,
+                activity_type: 'updated',
+                activity_info: `Task ${source_item.title} updated`
+              })
+            } else {
+              source_item.prev_id = destination_item?.task_id
+              updateTaskPosition(
+                {
+                  prev_id: destination_item?.task_id,
+                  list_id: activeList.list_id
+                },
+                source_item
+              )
+              if (next_to_destination_item) {
+                next_to_destination_item.prev_id = source_item?.task_id
+                updateTaskPosition(
+                  {
+                    prev_id: source_item?.task_id,
+                    list_id: activeList.list_id
+                  },
+                  next_to_destination_item
+                )
+              }
+              updateActivity({
+                workspace_id: activeWorkspace!.workspace_id,
+                activity_id,
+                user_id: user!.id,
+                activity_type: 'updated',
+                activity_info: `Task ${source_item.title} updated`
+              })
+            }
+          }
+
+          prev.lists = rearrangeTasks(prev.lists)
+          return prev
+        })
+      }
+    } else {
+      setOptimisticBoardInfo(prev => {
+        prev = cloneDeep(prev)
+
+        const sourceList = prev?.lists?.find(
+          l => l.list_id === e.source?.droppableId
+        )
+        const destinationList = prev?.lists?.find(
+          l => l.list_id === e.destination?.droppableId
+        )
+        if (sourceList && destinationList) {
+          const sourceIndex = e.source?.index
+          const destinationIndex = e.destination!.index
+          const next_to_source_index = e.source?.index + 1
+          //@ts-ignore
+          const prev_to_destination_index = e.destination?.index - 1
+          const source_item = sourceList?.tasks?.[sourceIndex]
+          const next_to_source_item = sourceList?.tasks?.[next_to_source_index]
+          const prev_to_destination_item =
+            destinationList?.tasks?.[prev_to_destination_index]
+          const destination_item = destinationList?.tasks?.[destinationIndex]
+          const activity_id = `activity_${crypto.randomUUID()}`
+
+          if (next_to_source_item) {
+            next_to_source_item.prev_id = source_item?.prev_id
+            updateTaskPosition(
+              {
+                prev_id: source_item.prev_id,
+                list_id: sourceList.list_id
+              },
+              next_to_source_item
+            )
+          }
+
+          const spliced_source_item = sourceList?.tasks?.splice(
+            sourceIndex,
+            1
+          )[0]
+
+          if (Array.isArray(destinationList.tasks)) {
+            destinationList.tasks.push(spliced_source_item)
+          } else {
+            destinationList.tasks = [spliced_source_item]
+          }
+          source_item.prev_id = prev_to_destination_item?.task_id || null
+          updateTaskPosition(
+            {
+              list_id: destinationList.list_id,
+              prev_id: prev_to_destination_item?.task_id || null
+            },
+            source_item
+          )
+
+          if (destination_item) {
+            destination_item.prev_id = source_item?.task_id
+            updateTaskPosition(
+              {
+                prev_id: source_item?.task_id,
+                list_id: destinationList.list_id
+              },
+              destination_item
+            )
+            updateActivity({
+              workspace_id: activeWorkspace!.workspace_id,
+              activity_id,
+              user_id: user!.id,
+              activity_type: 'updated',
+              activity_info: `Task ${source_item.title} updated`
+            })
+          }
+        }
+
+        prev.lists = rearrangeTasks(prev.lists)
+        return prev
+      })
+    }
+
+    // setOptimisticBoardInfo(prev => {
+    //   prev = cloneDeep(prev)
+    //   if (e.destination?.droppableId === e.source?.droppableId) {
+    //     const activeList = prev?.lists?.find(
+    //       l => l.list_id === e.source?.droppableId
+    //     )
+    //     if (activeList) {
+    //       const source_index = e.source?.index
+    //       const next_to_source_index = e.source?.index + 1
+    //       const destination_index = e.destination?.index
+    //       const next_to_destination_index = e.destination?.index + 1
+    //       const prev_to_destination_index = e.destination?.index - 1
+    //       const next_to_source_item = activeList?.tasks?.[next_to_source_index]
+    //       const source_item = activeList?.tasks?.[source_index]
+    //       const next_to_destination_item =
+    //         activeList?.tasks?.[next_to_destination_index]
+    //       const prev_to_destination_item =
+    //         activeList?.tasks?.[prev_to_destination_index]
+    //       const destination_item = activeList?.tasks?.[destination_index]
+
+    //       if (source_index === destination_index) {
+    //         return prev
+    //       }
+    //       if (next_to_source_item) {
+    //         next_to_source_item.prev_id = source_item?.prev_id
+    //       }
+
+    //       if (source_index > destination_index) {
+    //         source_item.prev_id = prev_to_destination_item?.task_id || null
+
+    //         destination_item.prev_id = source_item.task_id
+    //       } else {
+    //         source_item.prev_id = destination_item?.task_id
+    //         if (next_to_destination_item) {
+    //           next_to_destination_item.prev_id = source_item?.task_id
+    //         }
+    //       }
+    //     }
+    //   } else {
+    //     const sourceList = prev?.lists?.find(
+    //       l => l.list_id === e.source?.droppableId
+    //     )
+    //     const destinationList = prev?.lists?.find(
+    //       l => l.list_id === e.destination?.droppableId
+    //     )
+    //     if (sourceList && destinationList) {
+    //       const sourceIndex = e.source?.index
+    //       const destinationIndex = e.destination?.index
+    //       const next_to_source_index = e.source?.index + 1
+    //       //@ts-ignore
+    //       const prev_to_destination_index = e.destination?.index - 1
+    //       const source_item = sourceList?.tasks?.[sourceIndex]
+    //       const next_to_source_item = sourceList?.tasks?.[next_to_source_index]
+    //       const prev_to_destination_item =
+    //         destinationList?.tasks?.[prev_to_destination_index]
+    //       const destination_item = destinationList?.tasks?.[destinationIndex]
+
+    //       if (next_to_source_item) {
+    //         next_to_source_item.prev_id = source_item?.prev_id
+    //       }
+
+    //       const spliced_source_item = sourceList?.tasks?.splice(
+    //         sourceIndex,
+    //         1
+    //       )[0]
+
+    //       if (Array.isArray(destinationList.tasks)) {
+    //         destinationList.tasks.push(spliced_source_item)
+    //       } else {
+    //         destinationList.tasks = [spliced_source_item]
+    //       }
+    //       source_item.prev_id = prev_to_destination_item?.task_id || null
+
+    //       if (destination_item) {
+    //         destination_item.prev_id = source_item?.task_id
+    //       }
+    //     }
+    //   }
+
+    //   prev.lists = rearrangeTasks(prev.lists)
+    //   return prev
+    // })
+  }
+
   useEffect(() => {
     if (!user?.id) return
 
-    getBoardInfo(boardId).then(data => setBoardInfo(data))
+    getBoardInfo(boardId).then((data: BoardFullInfo) => {
+      data.lists = rearrangeColumns(data.lists)
+      data.lists = rearrangeTasks(data.lists)
+      setBoardInfo(data)
+    })
   }, [user])
 
   useEffect(() => {
     setOptimisticBoardInfo(boardInfo)
   }, [boardInfo])
+
+  console.log('re-render')
 
   return (
     <div className='h-full'>
@@ -116,8 +467,8 @@ function Board ({ params }: { params: { boardId: string } }) {
             {optimisticBoardInfo?.title}
           </h1>
         </div>
-        <DragDropContext onDragEnd={(...e) => console.log(e)}>
-          <div className='flex justify-start items-start gap-5 px-3'>
+        <DragDropContext onDragEnd={handleUpdateBoard}>
+          <div className='flex justify-start items-start gap-0 px-3'>
             <Droppable droppableId='board' direction='horizontal' type='column'>
               {boardDroppableProvided => (
                 <div
@@ -136,25 +487,18 @@ function Board ({ params }: { params: { boardId: string } }) {
                           {...boardDraggableProvided.draggableProps}
                           ref={boardDraggableProvided.innerRef}
                         >
-                          <Droppable droppableId={list.list_id}>
-                            {droppableProps => (
-                              <ListWrapper
-                                key={list?.list_id}
-                                className='shrink-0 mr-4'
-                                {...droppableProps.droppableProps}
-                                ref={droppableProps.innerRef}
-                              >
-                                <ListProvider>
-                                  <List
-                                    title={list.title}
-                                    list={list}
-                                    droppableProps={droppableProps}
-                                    draggableProps={boardDraggableProvided}
-                                  />
-                                </ListProvider>
-                              </ListWrapper>
-                            )}
-                          </Droppable>
+                          <ListWrapper
+                            key={list?.list_id}
+                            className='shrink-0 mr-4'
+                          >
+                            <ListProvider>
+                              <List
+                                title={list.title}
+                                list={list}
+                                draggableProps={boardDraggableProvided}
+                              />
+                            </ListProvider>
+                          </ListWrapper>
                         </div>
                       )}
                     </Draggable>
